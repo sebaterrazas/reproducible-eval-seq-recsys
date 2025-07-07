@@ -27,6 +27,7 @@ Este proyecto proporciona un framework de evaluación integral para sistemas de 
 
 ```
 repo/
+├── figures/                              # Imágenes de los gráficos comparando los resultados
 ├── scripts/                              # Notebooks de Jupyter con experimentos completos
 │   ├── GRU4Rec_RetailRocket_Optimized.ipynb    # Entrenamiento y evaluación de GRU4Rec en RetailRocket
 │   ├── GRU4Rec_YC_Optimized.ipynb              # Entrenamiento y evaluación de GRU4Rec en Yoochoose
