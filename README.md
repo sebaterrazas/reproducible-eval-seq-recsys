@@ -185,6 +185,10 @@ Los resultados están organizados por:
 }
 ```
 
+#### Gráficos
+
+Podemos graficar los resultados obtenidos usando el script `graph_results.py`, lo cual genera las imágenes que están en la carpeta `figures/`.
+
 ## 🔧 Requisitos
 
 ```
