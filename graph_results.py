@@ -30,6 +30,8 @@ def load_results(outputs_dir="outputs"):
         'GRU_RetailRocket': ('RetailRocket', 'GRU4Rec'),
         'NextItNet_Yoochoose': ('Yoochoose', 'NextItNet'),
         'NextItNet_RetailRocket': ('RetailRocket', 'NextItNet'),
+        'SASRec_Yoochoose': ('Yoochoose', 'SASRec'),
+        'SASRec_RetailRocket': ('RetailRocket', 'SASRec'),
         'ItemKNN_Yoochoose': ('Yoochoose', 'ItemKNN'),
         'ItemKNN_RetailRocket': ('RetailRocket', 'ItemKNN'),
         'Popularity_Yoochoose': ('Yoochoose', 'Popularity'),
@@ -42,6 +44,7 @@ def load_results(outputs_dir="outputs"):
     file_mapping = {
         'GRU4Rec': 'gru4rec_results.json',
         'NextItNet': 'nextitnet_results.json',
+        'SASRec': 'SASRec_results.json',
         'ItemKNN': 'itemknn_results.json',
         'Popularity': 'popularity_results.json',
         'Random': 'random_results.json'
@@ -51,6 +54,7 @@ def load_results(outputs_dir="outputs"):
     yoochoose_files = {
         'GRU4Rec': 'gru4rec_yc_results.json',
         'NextItNet': 'nextitnet_yc_results.json',
+        'SASRec': 'SASRec_yc_results.json',
         'ItemKNN': 'itemknn_yc_results.json',
         'Popularity': 'popularity_yc_results.json',
         'Random': 'random_yc_results.json'
@@ -60,6 +64,7 @@ def load_results(outputs_dir="outputs"):
     retailrocket_files = {
         'GRU4Rec': 'gru4rec_results.json',
         'NextItNet': 'nextitnet_results.json',
+        'SASRec': 'SASRec_results.json',
         'ItemKNN': 'itemknn_retailrocket_results.json',
         'Popularity': 'popularity_retailrocket_results.json',
         'Random': 'random_retailrocket_results.json'
@@ -108,7 +113,8 @@ def create_comparison_plots(results):
         'Popularity': '#4ECDC4',  # Verde azulado
         'ItemKNN': '#6B73FF',     # Azul
         'GRU4Rec': '#FFB347',     # Naranja
-        'NextItNet': '#DDA0DD'    # Púrpura claro
+        'NextItNet': '#DDA0DD',   # Púrpura claro
+        'SASRec': '#000000'       # Negro
     }
     
     # Marcadores para cada modelo
@@ -117,7 +123,8 @@ def create_comparison_plots(results):
         'Popularity': 's',
         'ItemKNN': '^',
         'GRU4Rec': 'D',
-        'NextItNet': 'v'
+        'NextItNet': 'v',
+        'SASRec': 'x'
     }
     
     k_values = [5, 10, 20]
@@ -148,7 +155,7 @@ def create_comparison_plots(results):
         ax.grid(True, alpha=0.3)
         
         # Plotear cada modelo
-        for model in ['Random', 'Popularity', 'ItemKNN', 'GRU4Rec', 'NextItNet']:
+        for model in ['Random', 'Popularity', 'ItemKNN', 'GRU4Rec', 'NextItNet', 'SASRec']:
             if model in results[dataset]:
                 model_data = results[dataset][model]
                 
@@ -185,8 +192,8 @@ def create_comparison_plots(results):
     plt.tight_layout(pad=3.0)
     
     # Título general
-    fig.suptitle('Comparación de Modelos de Recomendación - Recall@K y MRR@K', 
-                 fontsize=16, fontweight='bold', y=0.98)
+    # fig.suptitle('Comparación de Modelos de Recomendación - Recall@K y MRR@K', 
+    #              fontsize=16, fontweight='bold', y=0.98)
     
     # Guardar el gráfico
     plt.savefig('figures/model_comparison_results.png', dpi=300, bbox_inches='tight')
@@ -197,7 +204,7 @@ def create_comparison_plots(results):
 
 def create_diversity_bias_plots(results):
     """
-    Crea los 4 gráficos de ILD y Popularity Bias (2 métricas × 2 datasets)
+    Crea gráficos de ILD y Popularity Bias en imágenes separadas
     """
     # Configuración de estilo
     plt.style.use('default')
@@ -208,48 +215,43 @@ def create_diversity_bias_plots(results):
         'Popularity': '#4ECDC4',  # Verde azulado
         'ItemKNN': '#6B73FF',     # Azul
         'GRU4Rec': '#FFB347',     # Naranja
-        'NextItNet': '#DDA0DD'    # Púrpura claro
+        'NextItNet': '#DDA0DD',   # Púrpura claro
+        'SASRec': '#000000'       # Negro
     }
     
-    # Crear figura con 4 subplots (2x2)
-    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    # Crear directorio si no existe
+    os.makedirs('figures', exist_ok=True)
     
-    # Títulos para cada subplot
-    titles = [
+    # ========== GRÁFICO 1: ILD ==========
+    fig1, axes1 = plt.subplots(1, 2, figsize=(16, 6), constrained_layout=True)
+    
+    titles_ild = [
         'ILD para Top-10 Recomendaciones - Yoochoose',
-        'Popularity Bias para Top-10 - Yoochoose',
-        'ILD para Top-10 Recomendaciones - RetailRocket',
-        'Popularity Bias para Top-10 - RetailRocket'
+        'ILD para Top-10 Recomendaciones - RetailRocket'
     ]
     
-    # Configuraciones para cada subplot
-    plot_configs = [
-        ('Yoochoose', 'ild_10', 'Intra-List Diversity (ILD)', axes[0, 0]),
-        ('Yoochoose', 'popularity_bias_10', 'Popularity Bias', axes[0, 1]),
-        ('RetailRocket', 'ild_10', 'Intra-List Diversity (ILD)', axes[1, 0]),
-        ('RetailRocket', 'popularity_bias_10', 'Popularity Bias', axes[1, 1])
-    ]
+    datasets = ['Yoochoose', 'RetailRocket']
     
-    for i, (dataset, metric, ylabel, ax) in enumerate(plot_configs):
-        ax.set_title(titles[i], fontsize=14, fontweight='bold')
-        ax.set_ylabel(ylabel, fontsize=12)
-        ax.set_ylim(0, 1.0)  # Ambas métricas están entre 0 y 1
-        ax.grid(True, alpha=0.3, axis='y')
+    for i, (dataset, ax) in enumerate(zip(datasets, axes1)):
+        ax.set_title(titles_ild[i], fontsize=14, fontweight='bold')
+        ax.set_ylabel('Intra-List Diversity (ILD)', fontsize=12)
+        ax.set_ylim(0, 1.0)
+        ax.grid(True, alpha=0.3)
         
-        # Recopilar datos para este dataset
+        # Recopilar datos para ILD
         models = []
         values = []
         model_colors = []
         
-        for model in ['Random', 'Popularity', 'ItemKNN', 'GRU4Rec', 'NextItNet']:
+        for model in ['Random', 'Popularity', 'ItemKNN', 'GRU4Rec', 'NextItNet', 'SASRec']:
             if model in results[dataset]:
                 model_data = results[dataset][model]
-                if metric in model_data:
+                if 'ild_10' in model_data:
                     models.append(model)
-                    values.append(model_data[metric])
+                    values.append(model_data['ild_10'])
                     model_colors.append(colors[model])
         
-        if models:  # Solo plotear si hay datos
+        if models:
             # Crear gráfico de barras
             bars = ax.bar(models, values, color=model_colors, alpha=0.8, edgecolor='black', linewidth=1.5)
             
@@ -259,28 +261,87 @@ def create_diversity_bias_plots(results):
                 ax.text(bar.get_x() + bar.get_width()/2., height + 0.02,
                        f'{value:.2f}', ha='center', va='bottom', fontweight='bold', fontsize=11)
             
-            # Rotar etiquetas del eje X para mejor legibilidad
+            # Rotar etiquetas del eje X
             ax.tick_params(axis='x', rotation=45)
         else:
             ax.text(0.5, 0.5, 'No hay datos disponibles', ha='center', va='center', 
                    transform=ax.transAxes, fontsize=12, style='italic')
     
-    # Ajustar layout
-    plt.tight_layout(pad=3.0)
+    # Layout automático con constrained_layout
+    # plt.tight_layout(pad=2.5)  # No necesario con constrained_layout=True
     
-    # Título general
-    fig.suptitle('Análisis de Diversidad (ILD) y Sesgo de Popularidad', 
-                 fontsize=16, fontweight='bold', y=0.98)
+    # Título general para ILD
+    # fig1.suptitle('Análisis de Diversidad Intra-Lista (ILD)', 
+    #              fontsize=16, fontweight='bold', y=0.95)
     
-    # Crear directorio si no existe
-    os.makedirs('figures', exist_ok=True)
-    
-    # Guardar el gráfico
-    plt.savefig('figures/diversity_bias_analysis.png', dpi=300, bbox_inches='tight')
+    # Guardar gráfico de ILD
+    plt.savefig('figures/ild_analysis.png', dpi=300, bbox_inches='tight', 
+                facecolor='white', edgecolor='none')
     plt.show()
+    plt.close()
     
+    print("✅ Gráfico de ILD generado: figures/ild_analysis.png")
+
+    return
+    
+    # ========== GRÁFICO 2: POPULARITY BIAS ==========
+    fig2, axes2 = plt.subplots(1, 2, figsize=(16, 6))
+    
+    titles_bias = [
+        'Popularity Bias para Top-10 - Yoochoose',
+        'Popularity Bias para Top-10 - RetailRocket'
+    ]
+    
+    for i, (dataset, ax) in enumerate(zip(datasets, axes2)):
+        ax.set_title(titles_bias[i], fontsize=14, fontweight='bold')
+        ax.set_ylabel('Popularity Bias', fontsize=12)
+        ax.set_ylim(0, 1.0)
+        ax.grid(True, alpha=0.3)
+        
+        # Recopilar datos para Popularity Bias
+        models = []
+        values = []
+        model_colors = []
+        
+        for model in ['Random', 'Popularity', 'ItemKNN', 'GRU4Rec', 'NextItNet', 'SASRec']:
+            if model in results[dataset]:
+                model_data = results[dataset][model]
+                if 'popularity_bias_10' in model_data:
+                    models.append(model)
+                    values.append(model_data['popularity_bias_10'])
+                    model_colors.append(colors[model])
+        
+        if models:
+            # Crear gráfico de barras
+            bars = ax.bar(models, values, color=model_colors, alpha=0.8, edgecolor='black', linewidth=1.5)
+            
+            # Agregar valores encima de las barras
+            for bar, value in zip(bars, values):
+                height = bar.get_height()
+                ax.text(bar.get_x() + bar.get_width()/2., height + 0.02,
+                       f'{value:.2f}', ha='center', va='bottom', fontweight='bold', fontsize=11)
+            
+            # Rotar etiquetas del eje X
+            ax.tick_params(axis='x', rotation=45)
+        else:
+            ax.text(0.5, 0.5, 'No hay datos disponibles', ha='center', va='center', 
+                   transform=ax.transAxes, fontsize=12, style='italic')
+    
+    # Ajustar manualmente los márgenes para evitar problemas de layout
+    fig2.subplots_adjust(top=0.88, bottom=0.15, left=0.08, right=0.95, wspace=0.3)
+    
+    # Título general para Popularity Bias
+    # fig2.suptitle('Análisis de Sesgo de Popularidad', 
+    #              fontsize=14, fontweight='bold', y=0.95)
+    
+    # Guardar gráfico de Popularity Bias
+    plt.savefig('figures/popularity_bias_analysis.png', dpi=200, bbox_inches='tight', 
+                facecolor='white', edgecolor='none')
+    plt.show()
+    plt.close()
+    
+    print("✅ Gráfico de Popularity Bias generado: figures/popularity_bias_analysis.png")
     print("✅ Gráficos de diversidad y sesgo generados exitosamente!")
-    print("📊 Archivo guardado: figures/diversity_bias_analysis.png")
 
 def print_summary(results):
     """
@@ -320,7 +381,9 @@ def load_sensitivity_results(outputs_dir="outputs"):
         'GRU4Rec_Yoochoose': ('Yoochoose', 'GRU4Rec', 'gru4rec_yc_sensitivity_analysis.json'),
         'GRU_RetailRocket': ('RetailRocket', 'GRU4Rec', 'gru4rec_sensitivity_analysis.json'),
         'NextItNet_Yoochoose': ('Yoochoose', 'NextItNet', 'nextitnet_yc_sensitivity_analysis.json'),
-        'NextItNet_RetailRocket': ('RetailRocket', 'NextItNet', 'nextitnet_sensitivity_analysis.json')
+        'NextItNet_RetailRocket': ('RetailRocket', 'NextItNet', 'nextitnet_sensitivity_analysis.json'),
+        'SASRec_Yoochoose': ('Yoochoose', 'SASRec', 'SASRec_yc_sensitivity_analysis.json'),
+        'SASRec_RetailRocket': ('RetailRocket', 'SASRec', 'SASRec_sensitivity_analysis.json')
     }
     
     outputs_path = Path(outputs_dir)
@@ -352,13 +415,15 @@ def create_embedding_sensitivity_plots(sensitivity_results):
     # Colores para cada modelo
     colors = {
         'GRU4Rec': '#FFB347',     # Naranja
-        'NextItNet': '#DDA0DD'    # Púrpura claro
+        'NextItNet': '#DDA0DD',   # Púrpura claro
+        'SASRec': '#000000'       # Negro
     }
     
     # Marcadores para cada modelo
     markers = {
         'GRU4Rec': 'D',
-        'NextItNet': 'v'
+        'NextItNet': 'v',
+        'SASRec': 'x'
     }
     
     # Crear figura con 2 subplots (1x2)
@@ -379,7 +444,7 @@ def create_embedding_sensitivity_plots(sensitivity_results):
         ax.grid(True, alpha=0.3)
         
         # Plotear cada modelo
-        for model in ['GRU4Rec', 'NextItNet']:
+        for model in ['GRU4Rec', 'NextItNet', 'SASRec']:
             if model in sensitivity_results[dataset]:
                 data = sensitivity_results[dataset][model]
                 
@@ -425,8 +490,8 @@ def create_embedding_sensitivity_plots(sensitivity_results):
     plt.tight_layout(pad=3.0)
     
     # Título general
-    fig.suptitle('Análisis de Sensibilidad de Embedding Dimensions', 
-                 fontsize=16, fontweight='bold', y=1.02)
+    # fig.suptitle('Análisis de Sensibilidad de Embedding Dimensions', 
+    #             fontsize=16, fontweight='bold', y=1.02)
     
     # Crear directorio si no existe
     os.makedirs('figures', exist_ok=True)
@@ -463,22 +528,37 @@ def main():
     # Crear directorio de figuras si no existe
     os.makedirs('figures', exist_ok=True)
     
-    # Crear gráficos de Recall y MRR
-    create_comparison_plots(results)
-    
-    print(f"\n🎨 Generando gráficos de diversidad y sesgo...")
-    
-    # Crear gráficos de ILD y Popularity Bias
-    create_diversity_bias_plots(results)
-    
-    print(f"\n📈 Generando gráficos de sensibilidad de embeddings...")
-    
-    # Cargar y crear gráficos de sensibilidad
-    sensitivity_results = load_sensitivity_results()
-    create_embedding_sensitivity_plots(sensitivity_results)
-    
-    print("\n🎉 ¡Proceso completado exitosamente!")
-    print("📁 Todos los gráficos guardados en el directorio 'figures/'")
+    try:
+        # Crear gráficos de Recall y MRR
+        print("📈 Generando gráficos de Recall@K y MRR@K...")
+        create_comparison_plots(results)
+        
+        # Limpiar memoria
+        plt.close('all')
+        
+        print(f"\n🎨 Generando gráficos de diversidad y sesgo...")
+        
+        # Crear gráficos de ILD y Popularity Bias
+        create_diversity_bias_plots(results)
+        
+        # Limpiar memoria
+        plt.close('all')
+        
+        print(f"\n📈 Generando gráficos de sensibilidad de embeddings...")
+        
+        # Cargar y crear gráficos de sensibilidad
+        sensitivity_results = load_sensitivity_results()
+        create_embedding_sensitivity_plots(sensitivity_results)
+        
+        # Limpiar memoria final
+        plt.close('all')
+        
+        print("\n🎉 ¡Proceso completado exitosamente!")
+        print("📁 Todos los gráficos guardados en el directorio 'figures/'")
+        
+    except Exception as e:
+        print(f"❌ Error durante la generación de gráficos: {e}")
+        print("💡 Intenta ejecutar el script nuevamente o revisa los archivos de datos")
 
 if __name__ == "__main__":
     main()
